@@ -1,14 +1,14 @@
 import { Scissors, User, Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useBooking } from "@/context/BookingContext";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ROUTES } from "@/routes";
 
-const LandingPage = () => {
-  const navigate = useNavigate();
-  const { resetBooking } = useBooking();
+interface LandingPageProps {
+  onGetStarted: () => void;
+  onExplore: () => void;
+  onProSignup: () => void;
+}
 
+const LandingPage = ({ onGetStarted, onExplore, onProSignup }: LandingPageProps) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-background to-secondary/20">
       <motion.div
@@ -34,10 +34,7 @@ const LandingPage = () => {
             <Button 
               variant="default" 
               size="lg"
-              onClick={() => {
-                resetBooking();
-                navigate(ROUTES.USER_ONBOARDING);
-              }}
+              onClick={onGetStarted}
               className="w-full py-6 text-base flex items-center justify-center gap-2 shadow-sm"
             >
               <User className="h-5 w-5" />
@@ -52,7 +49,7 @@ const LandingPage = () => {
             <Button 
               variant="outline" 
               size="lg"
-              onClick={() => navigate(ROUTES.PRO_SIGNUP)}
+              onClick={onProSignup}
               className="w-full py-6 text-base flex items-center justify-center gap-2 shadow-sm"
             >
               <Scissors className="h-5 w-5" />
@@ -67,7 +64,7 @@ const LandingPage = () => {
             <Button 
               variant="ghost" 
               size="lg"
-              onClick={() => navigate(ROUTES.EXPLORE)}
+              onClick={onExplore}
               className="w-full py-6 text-base flex items-center justify-center gap-2"
             >
               <Search className="h-5 w-5" />
@@ -78,11 +75,7 @@ const LandingPage = () => {
 
         <div className="mt-8">
           <a 
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(ROUTES.DASHBOARD);
-            }}
+            href="#" 
             className="text-sm text-primary hover:underline transition-all"
           >
             Already have an account? Log In

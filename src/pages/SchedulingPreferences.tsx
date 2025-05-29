@@ -8,28 +8,16 @@ import { Slider } from "@/components/ui/slider";
 import { Calendar } from "@/components/ui/calendar";
 import { motion } from "framer-motion";
 
-import { useNavigate } from "react-router-dom";
-import { useBooking } from "@/context/BookingContext";
-import { ROUTES } from "@/routes";
+interface SchedulingPreferencesProps {
+  onBack: () => void;
+  onContinue: () => void;
+}
 
-const SchedulingPreferences = () => {
-  const navigate = useNavigate();
-  const { bookingData, updateBooking } = useBooking();
+const SchedulingPreferences = ({ onBack, onContinue }: SchedulingPreferencesProps) => {
   const [radius, setRadius] = useState([5]);
   const [date, setDate] = useState<Date>();
   const [isFlexible, setIsFlexible] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
-
-  const handleContinue = () => {
-    updateBooking({
-      schedule: {
-        radius: radius[0],
-        date: date || null,
-        time: selectedTimes[0] || null
-      }
-    });
-    navigate(ROUTES.RECOMMENDED_PROS);
-  };
 
   const timeSlots = [
     "9:00 AM - 10:00 AM",
@@ -59,7 +47,7 @@ const SchedulingPreferences = () => {
       >
         <div className="space-y-2">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={onBack}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Progress value={60} className="h-2" />
@@ -147,12 +135,12 @@ const SchedulingPreferences = () => {
         </div>
 
         <div className="flex gap-4 pt-6">
-          <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
+          <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
           </Button>
           <Button 
             className="w-full" 
-            onClick={handleContinue}
+            onClick={onContinue}
             disabled={!date || selectedTimes.length === 0}
           >
             Continue

@@ -1,7 +1,5 @@
 import { BarChart2, Calendar, ChevronDown, Eye, Heart, ImagePlus, MessageCircle, Plus, Settings, Star, TrendingUp, Users } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useBooking } from "@/context/BookingContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +9,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import ProNavigationBar from "@/components/ProNavigationBar";
 import { useToast } from "@/hooks/use-toast";
-import { ROUTES } from "@/routes";
 
 interface ProDashboardProps {
   onNavigate: (page: string) => void;
@@ -84,12 +81,10 @@ const mockPortfolio: PortfolioPiece[] = [
 const ProDashboard = ({ onNavigate }: ProDashboardProps) => {
   const [newRequests] = useState(2);
   const [timeFilter, setTimeFilter] = useState("7d");
-  const navigate = useNavigate();
-  const { bookingData } = useBooking();
   const { toast } = useToast();
 
   const handleMetricClick = (metric: string) => {
-    navigate(`${ROUTES.PRO_ANALYTICS}/${metric.toLowerCase()}`);
+    onNavigate(`metrics/${metric.toLowerCase()}`);
   };
 
   const formatDate = (date: Date) => {
@@ -214,7 +209,7 @@ const ProDashboard = ({ onNavigate }: ProDashboardProps) => {
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-medium">Portfolio Engagement</h2>
-                  <Button variant="outline" size="sm" onClick={() => onNavigate(ROUTES.PRO_PORTFOLIO)}>View All</Button>
+                  <Button variant="outline" size="sm" onClick={() => onNavigate("portfolio")}>View All</Button>
                 </div>
                 <ScrollArea className="w-full">
                   <div className="flex gap-4 pb-4">

@@ -6,9 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
-import { useNavigate, useParams } from "react-router-dom";
-import { useBooking } from "@/context/BookingContext";
-import { ROUTES } from "@/routes";
+
+interface TransformationPageProps {
+  transformationId: string;
+  onBack: () => void;
+  onViewProfile: (proId: string) => void;
+  onBook: (proId: string) => void;
+}
 
 interface Transformation {
   id: string;
@@ -122,17 +126,9 @@ const mockTransformation: Transformation = {
   ]
 };
 
-const TransformationPage = () => {
-  const navigate = useNavigate();
-  const { transformationId } = useParams();
-  const { updateBooking } = useBooking();
+const TransformationPage = ({ onBack, onViewProfile, onBook }: TransformationPageProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [date, setDate] = useState<Date>();
-
-  const handleBook = (proId: string) => {
-    updateBooking({ selectedPro: proId });
-    navigate(ROUTES.CONFIRM_BOOKING);
-  };
   
   const allImages = [
     mockTransformation.images.after,
@@ -154,7 +150,7 @@ const TransformationPage = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={onBack}
           className="mb-6"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -234,7 +230,7 @@ const TransformationPage = () => {
                     />
                     <button
                       className="text-sm hover:underline"
-                      onClick={() => navigate(`${ROUTES.PRO_PROFILE}/${mockTransformation.stylist.id}`)}
+                      onClick={() => onViewProfile(mockTransformation.stylist.id)}
                     >
                       by {mockTransformation.stylist.name}
                     </button>
@@ -327,7 +323,7 @@ const TransformationPage = () => {
                     <Card
                       key={style.id}
                       className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                      onClick={() => navigate(`${ROUTES.PRO_PROFILE}/${style.id}`)}
+                      onClick={() => onViewProfile(style.id)}
                     >
                       <div className="relative aspect-square">
                         <img
@@ -390,7 +386,7 @@ const TransformationPage = () => {
               </div>
 
               <div className="space-y-4">
-                <Button className="w-full" size="lg" onClick={() => handleBook(mockTransformation.stylist.id)}>
+                <Button className="w-full" size="lg" onClick={() => onBook(mockTransformation.stylist.id)}>
                   <Calendar className="mr-2 h-4 w-4" />
                   Book Now
                 </Button>

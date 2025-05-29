@@ -1,6 +1,4 @@
-import { ArrowLeft, Ruler, Sparkles, UserCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useBooking } from "@/context/BookingContext";
+import { ArrowLeft, Image, Ruler, Sparkles, UserCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ROUTES } from "@/routes";
 import { motion } from "framer-motion";
 
 type ImageUpload = {
@@ -16,21 +13,14 @@ type ImageUpload = {
   file: File;
 } | null;
 
-const HaircutPreferences = () => {
-  const navigate = useNavigate();
-  const { bookingData, updateBooking } = useBooking();
+interface HaircutPreferencesProps {
+  onBack: () => void;
+  onContinue: () => void;
+}
+
+const HaircutPreferences = ({ onBack, onContinue }: HaircutPreferencesProps) => {
   const [referenceImage, setReferenceImage] = useState<ImageUpload>(null);
   const [socialMediaLink, setSocialMediaLink] = useState("");
-  const [description, setDescription] = useState("");
-
-  const handleContinue = () => {
-    updateBooking({
-      description,
-      reference: referenceImage?.preview || socialMediaLink
-    });
-    
-    navigate(ROUTES.SCHEDULING);
-  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,7 +41,7 @@ const HaircutPreferences = () => {
       >
         <div className="space-y-2">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(ROUTES.USER_ONBOARDING)}>
+            <Button variant="ghost" size="icon" onClick={onBack}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Progress value={40} className="h-2" />
@@ -99,8 +89,6 @@ const HaircutPreferences = () => {
                 id="description"
                 placeholder="Describe the style, length, and any specific details about the haircut you want..."
                 className="min-h-[120px]"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
                 required
               />
             </div>
@@ -172,16 +160,10 @@ const HaircutPreferences = () => {
         </div>
 
         <div className="flex gap-4 pt-6">
-          <Button variant="outline" className="w-full" onClick={() => navigate(ROUTES.USER_ONBOARDING)}>
+          <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
           </Button>
-          <Button
-            className="w-full"
-            onClick={handleContinue}
-            disabled={!description}
-          >
-            Continue
-          </Button>
+          <Button className="w-full" onClick={onContinue}>Continue</Button>
         </div>
       </motion.div>
     </div>

@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { useBooking } from "@/context/BookingContext";
-import { ROUTES } from "@/routes";
+
+interface RecommendedProfessionalsProps {
+  onBack: () => void;
+  onViewProfile: (proId: string) => void;
+  onBook: (proId: string) => void;
+  onExplore: () => void;
+}
 
 interface Professional {
   id: string;
@@ -107,15 +111,8 @@ const mockProfessionals: Professional[] = [
   }
 ];
 
-const RecommendedProfessionals = () => {
-  const navigate = useNavigate();
-  const { updateBooking } = useBooking();
+const RecommendedProfessionals = ({ onBack, onViewProfile, onBook, onExplore }: RecommendedProfessionalsProps) => {
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'bookings'>('distance');
-
-  const handleBook = (proId: string) => {
-    updateBooking({ selectedPro: proId });
-    navigate(ROUTES.CONFIRM_BOOKING);
-  };
 
   const sortedProfessionals = [...mockProfessionals].sort((a, b) => {
     switch (sortBy) {
@@ -137,14 +134,14 @@ const RecommendedProfessionals = () => {
       >
         <div className="space-y-2">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={onBack}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Progress value={80} className="h-2" />
           </div>
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-semibold">Top Professionals Matched to Your Look</h1>
-            <Button variant="outline" onClick={() => navigate(ROUTES.EXPLORE)}>
+            <Button variant="outline" onClick={onExplore}>
               Explore Styles
             </Button>
           </div>
@@ -239,13 +236,13 @@ const RecommendedProfessionals = () => {
                   <Button
                     variant="outline"
                     className="w-full"
-                    onClick={() => navigate(`${ROUTES.PRO_PROFILE}/${pro.id}`)}
+                    onClick={() => onViewProfile(pro.id)}
                   >
                     View Profile
                   </Button>
                   <Button 
                     className="w-full"
-                    onClick={() => handleBook(pro.id)}
+                    onClick={() => onBook(pro.id)}
                   >
                     Book Now
                   </Button>
@@ -256,7 +253,7 @@ const RecommendedProfessionals = () => {
         </div>
 
         <div className="pt-6">
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button variant="outline" onClick={onBack}>
             Go Back
           </Button>
         </div>

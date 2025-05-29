@@ -1,8 +1,5 @@
 import { ArrowLeft, Calendar, MapPin, MessageCircle } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useBooking } from "@/context/BookingContext";
-import { ROUTES } from "@/routes";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
+
+interface BookingConfirmationProps {
+  proId: string;
+  onBack: () => void;
+  onSendBookingRequest: () => void;
+}
 
 interface Service {
   name: string;
@@ -58,16 +61,9 @@ const mockUserPreferences: UserPreferences = {
   }
 };
 
-const BookingConfirmation = () => {
-  const navigate = useNavigate();
-  const { bookingData } = useBooking();
+const BookingConfirmation = ({ onBack, onSendBookingRequest }: BookingConfirmationProps) => {
   const [message, setMessage] = useState("");
   const [agreed, setAgreed] = useState(false);
-
-  const handleSendRequest = () => {
-    // Here you would typically make an API call to create the booking
-    navigate(ROUTES.SUCCESS);
-  };
 
   // Mock selected service and time
   const selectedService = mockProfessional.services[0];
@@ -95,7 +91,7 @@ const BookingConfirmation = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
+          onClick={onBack}
           className="mb-6"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -212,14 +208,14 @@ const BookingConfirmation = () => {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => navigate(-1)}
+            onClick={onBack}
           >
             Go Back
           </Button>
           <Button
             className="flex-1"
             disabled={!agreed}
-            onClick={handleSendRequest}
+            onClick={onSendBookingRequest}
           >
             <MessageCircle className="w-4 h-4 mr-2" />
             Send Booking Request
