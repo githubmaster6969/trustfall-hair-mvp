@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
-interface BookingSuccessPageProps {
-  proId: string;
-  onViewDashboard: () => void;
-}
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/routes";
 
-const BookingSuccessPage = ({ onViewDashboard }: BookingSuccessPageProps) => {
+const BookingSuccessPage = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
       <motion.div
@@ -30,7 +30,7 @@ const BookingSuccessPage = ({ onViewDashboard }: BookingSuccessPageProps) => {
           </div>
 
           <div className="space-y-4 pt-4">
-            <Button className="w-full" size="lg" onClick={onViewDashboard}>
+            <Button className="w-full" size="lg" onClick={() => navigate(ROUTES.DASHBOARD)}>
               <Calendar className="mr-2 h-4 w-4" />
               View My Dashboard
             </Button>
