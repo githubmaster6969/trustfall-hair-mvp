@@ -8,16 +8,28 @@ import { Slider } from "@/components/ui/slider";
 import { Calendar } from "@/components/ui/calendar";
 import { motion } from "framer-motion";
 
-interface SchedulingPreferencesProps {
-  onBack: () => void;
-  onContinue: () => void;
-}
+import { useNavigate } from "react-router-dom";
+import { useBooking } from "@/context/BookingContext";
+import { ROUTES } from "@/routes";
 
-const SchedulingPreferences = ({ onBack, onContinue }: SchedulingPreferencesProps) => {
+const SchedulingPreferences = () => {
+  const navigate = useNavigate();
+  const { bookingData, updateBooking } = useBooking();
   const [radius, setRadius] = useState([5]);
   const [date, setDate] = useState<Date>();
   const [isFlexible, setIsFlexible] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+
+  const handleContinue = () => {
+    updateBooking({
+      schedule: {
+        radius: radius[0],
+        date: date || null,
+        time: selectedTimes[0] || null
+      }
+    });
+    navigate(ROUTES.RECOMMENDED_PROS);
+  };
 
   const timeSlots = [
     "9:00 AM - 10:00 AM",
@@ -47,7 +59,7 @@ const SchedulingPreferences = ({ onBack, onContinue }: SchedulingPreferencesProp
       >
         <div className="space-y-2">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={onBack}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Progress value={60} className="h-2" />
@@ -135,12 +147,12 @@ const SchedulingPreferences = ({ onBack, onContinue }: SchedulingPreferencesProp
         </div>
 
         <div className="flex gap-4 pt-6">
-          <Button variant="outline" className="w-full" onClick={onBack}>
+          <Button variant="outline" className="w-full" onClick={() => navigate(-1)}>
             Go Back
           </Button>
           <Button 
             className="w-full" 
-            onClick={onContinue}
+            onClick={handleContinue}
             disabled={!date || selectedTimes.length === 0}
           >
             Continue
