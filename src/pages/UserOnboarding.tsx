@@ -1,10 +1,13 @@
-import { ArrowLeft, Camera, Upload } from "lucide-react";
+import { ArrowLeft, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useBooking } from "@/context/BookingContext";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { ROUTES } from "@/routes";
 import { motion } from "framer-motion";
 
 type ImageUpload = {
@@ -12,17 +15,31 @@ type ImageUpload = {
   file: File;
 } | null;
 
-interface UserOnboardingProps {
-  onBack: () => void;
-  onContinue: () => void;
-}
-
-const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
+const UserOnboarding = () => {
+  const navigate = useNavigate();
+  const { updateBooking } = useBooking();
   const [frontImage, setFrontImage] = useState<ImageUpload>(null);
   const [sideImage, setSideImage] = useState<ImageUpload>(null);
   const [topImage, setTopImage] = useState<ImageUpload>(null);
   const [backImage, setBackImage] = useState<ImageUpload>(null);
   const [blurFace, setBlurFace] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [location, setLocation] = useState("");
+
+  const handleContinue = () => {
+    // Save form data to booking context
+    updateBooking({
+      images: [
+        frontImage?.preview,
+        sideImage?.preview,
+        topImage?.preview,
+        backImage?.preview
+      ].filter(Boolean) as string[]
+    });
+    
+    navigate(ROUTES.HAIR_PREFS);
+  };
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -99,7 +116,7 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
       >
         <div className="space-y-2">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={onBack}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(ROUTES.LANDING)}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <Progress value={20} className="h-2" />
@@ -114,7 +131,13 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
           <div className="grid gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="Enter your name" required />
+              <Input
+                id="name"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -122,6 +145,8 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
                 id="email"
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -130,6 +155,8 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
               <Input
                 id="location"
                 placeholder="Enter your location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
                 required
               />
             </div>
@@ -178,10 +205,16 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
         </div>
 
         <div className="flex gap-4 pt-6">
-          <Button variant="outline" className="w-full" onClick={onBack}>
+          <Button variant="outline" className="w-full" onClick={() => navigate(ROUTES.LANDING)}>
             Go Back
           </Button>
-          <Button className="w-full" onClick={onContinue}>Continue</Button>
+          <Button
+            className="w-full"
+            onClick={handleContinue}
+            disabled={!name || !email || !location || !frontImage || !sideImage}
+          >
+            Continue
+          </Button>
         </div>
       </motion.div>
     </div>
