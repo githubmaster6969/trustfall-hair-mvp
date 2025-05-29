@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import ProNavigationBar from "@/components/ProNavigationBar";
 import { useToast } from "@/hooks/use-toast";
+import { ROUTES } from "@/routes";
 
 interface ProDashboardProps {
   onNavigate: (page: string) => void;
@@ -209,7 +210,7 @@ const ProDashboard = ({ onNavigate }: ProDashboardProps) => {
               <Card className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-medium">Portfolio Engagement</h2>
-                  <Button variant="outline" size="sm" onClick={() => onNavigate("portfolio")}>View All</Button>
+                  <Button variant="outline" size="sm" onClick={() => onNavigate(ROUTES.PRO_PORTFOLIO)}>View All</Button>
                 </div>
                 <ScrollArea className="w-full">
                   <div className="flex gap-4 pb-4">
