@@ -1,5 +1,7 @@
 import { BarChart2, Calendar, ChevronDown, Eye, Heart, ImagePlus, MessageCircle, Plus, Settings, Star, TrendingUp, Users } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useBooking } from "@/context/BookingContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,10 +84,12 @@ const mockPortfolio: PortfolioPiece[] = [
 const ProDashboard = ({ onNavigate }: ProDashboardProps) => {
   const [newRequests] = useState(2);
   const [timeFilter, setTimeFilter] = useState("7d");
+  const navigate = useNavigate();
+  const { bookingData } = useBooking();
   const { toast } = useToast();
 
   const handleMetricClick = (metric: string) => {
-    onNavigate(`metrics/${metric.toLowerCase()}`);
+    navigate(`${ROUTES.PRO_ANALYTICS}/${metric.toLowerCase()}`);
   };
 
   const formatDate = (date: Date) => {

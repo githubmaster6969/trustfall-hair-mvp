@@ -18,164 +18,40 @@ import ProServices from "@/pages/ProServices";
 import ProPreview from "@/pages/ProPreview";
 import ProDashboard from "@/pages/ProDashboard";
 import { BookingProvider } from "@/context/BookingContext";
-import { useState } from "react";
-
-type Page = 
-  | "landing" 
-  | "onboarding" 
-  | "pro-signup"
-  | "pro-social-links"
-  | "pro-portfolio"
-  | "pro-availability"
-  | "pro-services"
-  | "pro-preview"
-  | "pro-dashboard"
-  | "preferences" 
-  | "scheduling" 
-  | "gallery" 
-  | "profile" 
-  | "booking" 
-  | "explore" 
-  | "transformation"
-  | "bookingSuccess"
-  | "dashboard";
-
-interface PageState {
-  page: Page;
-  proId?: string;
-  transformationId?: string;
-  source?: Page;
-}
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ROUTES } from "@/routes";
 
 function App() {
-  const [pageState, setPageState] = useState<PageState>({ page: "landing" });
-  const [history, setHistory] = useState<PageState[]>([]);
-  const [hasActiveBooking, setHasActiveBooking] = useState(false);
-
-  const navigateTo = (page: Page, proId?: string, transformationId?: string, source?: Page) => {
-    // Save current state to history before navigating
-    if (pageState.page !== page) {
-      setHistory(prev => [...prev, pageState]);
-    }
-    setPageState({ page, proId, transformationId, source });
-  };
-
-  const navigateBack = () => {
-    const previousState = history[history.length - 1];
-    if (previousState) {
-      setPageState(previousState);
-      setHistory(prev => prev.slice(0, -1));
-    } else {
-      // Default fallback if no history exists
-      setPageState({ page: "landing" });
-    }
-  };
-
   return (
     <ThemeProvider defaultTheme="light" storageKey="trustfall-theme">
       <BookingProvider>
-      {hasActiveBooking && pageState.page === "landing" ? (
-        <UserDashboard onNavigate={navigateTo} />
-      ) : pageState.page === "landing" ? (
-        <LandingPage 
-          onGetStarted={() => navigateTo("onboarding")}
-          onExplore={() => navigateTo("explore", undefined, undefined, "landing")}
-          onProSignup={() => navigateTo("pro-signup")}
-        />
-      ) : pageState.page === "onboarding" ? (
-        <UserOnboarding 
-          onBack={navigateBack}
-          onContinue={() => navigateTo("preferences")}
-        />
-      ) : pageState.page === "pro-signup" ? (
-        <ProSignup
-          onBack={navigateBack}
-          onContinue={() => navigateTo("pro-social-links")}
-        />
-      ) : pageState.page === "pro-social-links" ? (
-        <ProSocialLinks
-          onBack={navigateBack}
-          onContinue={() => navigateTo("pro-portfolio")}
-        />
-      ) : pageState.page === "pro-portfolio" ? (
-        <ProPortfolio
-          onBack={navigateBack}
-          onContinue={() => navigateTo("pro-services")}
-        />
-      ) : pageState.page === "pro-services" ? (
-        <ProServices
-          onBack={navigateBack}
-          onContinue={() => navigateTo("pro-preview")}
-        />
-      ) : pageState.page === "pro-availability" ? (
-        <ProAvailability
-          onBack={navigateBack}
-          onContinue={() => navigateTo("pro-preview")}
-        />
-      ) : pageState.page === "pro-preview" ? (
-        <ProPreview
-          onBack={navigateBack}
-          onContinue={() => navigateTo("pro-dashboard")}
-        />
-      ) : pageState.page === "preferences" ? (
-        <HaircutPreferences
-          onBack={navigateBack}
-          onContinue={() => navigateTo("scheduling")}
-        />
-      ) : pageState.page === "scheduling" ? (
-        <SchedulingPreferences
-          onBack={navigateBack}
-          onContinue={() => navigateTo("gallery")}
-        />
-      ) : pageState.page === "gallery" ? (
-        <RecommendedProfessionals
-          onBack={navigateBack}
-          onViewProfile={(proId) => navigateTo("profile", proId)}
-          onBook={(proId) => navigateTo("booking", proId)}
-          onExplore={() => navigateTo("explore")}
-        />
-      ) : pageState.page === "profile" ? (
-        <ProProfile
-          proId={pageState.proId!}
-          onBack={navigateBack}
-          onBook={() => navigateTo("booking", pageState.proId)}
-        />
-      ) : pageState.page === "explore" ? (
-        <ExplorePage
-          onBack={navigateBack}
-          onViewTransformation={(id) => navigateTo("transformation", undefined, id, "explore")}
-          onViewProfile={(proId) => navigateTo("profile", proId)}
-        />
-      ) : pageState.page === "transformation" ? (
-        <TransformationPage
-          transformationId={pageState.transformationId!}
-          onBack={navigateBack}
-          onViewProfile={(proId) => navigateTo("profile", proId)}
-          onBook={(proId) => navigateTo("booking", proId)}
-        />
-      ) : pageState.page === "booking" ? (
-        <BookingConfirmation
-          proId={pageState.proId!}
-          onBack={navigateBack}
-          onSendBookingRequest={() => {
-            setHasActiveBooking(true);
-            navigateTo("bookingSuccess", pageState.proId);
-          }}
-        />
-      ) : pageState.page === "bookingSuccess" ? (
-        <BookingSuccessPage
-          proId={pageState.proId!}
-          onViewDashboard={() => navigateTo("dashboard")}
-        />
-      ) : pageState.page === "dashboard" ? (
-        <UserDashboard
-          onNavigate={navigateTo}
-        />
-      ) : pageState.page === "pro-dashboard" ? (
-        <ProDashboard
-          onNavigate={navigateTo}
-        />
-      ) : null}
+        <BrowserRouter>
+          <Routes>
+            <Route path={ROUTES.LANDING} element={<LandingPage />} />
+            <Route path={ROUTES.USER_ONBOARDING} element={<UserOnboarding />} />
+            <Route path={ROUTES.HAIR_PREFS} element={<HaircutPreferences />} />
+            <Route path={ROUTES.SCHEDULING} element={<SchedulingPreferences />} />
+            <Route path={ROUTES.RECOMMENDED_PROS} element={<RecommendedProfessionals />} />
+            <Route path={ROUTES.CONFIRM_BOOKING} element={<BookingConfirmation />} />
+            <Route path={ROUTES.SUCCESS} element={<BookingSuccessPage />} />
+            <Route path={ROUTES.EXPLORE} element={<ExplorePage />} />
+            <Route path={ROUTES.DASHBOARD} element={<UserDashboard />} />
+            <Route path={ROUTES.TRANSFORMATION} element={<TransformationPage />} />
+            
+            {/* Professional Routes */}
+            <Route path={ROUTES.PRO_SIGNUP} element={<ProSignup />} />
+            <Route path={ROUTES.PRO_SOCIALS} element={<ProSocialLinks />} />
+            <Route path={ROUTES.PRO_PORTFOLIO} element={<ProPortfolio />} />
+            <Route path={ROUTES.PRO_SERVICES} element={<ProServices />} />
+            <Route path={ROUTES.PRO_AVAILABILITY} element={<ProAvailability />} />
+            <Route path={ROUTES.PRO_PREVIEW} element={<ProPreview />} />
+            <Route path={ROUTES.PRO_PROFILE} element={<ProProfile />} />
+            <Route path={ROUTES.PRO_DASHBOARD} element={<ProDashboard />} />
+            
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to={ROUTES.LANDING} replace />} />
+          </Routes>
+        </BrowserRouter>
       </BookingProvider>
     </ThemeProvider>
   );
