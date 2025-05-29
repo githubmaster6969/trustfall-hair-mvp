@@ -1,7 +1,6 @@
 import { BarChart2, Calendar, Home, Image, LayoutGrid, MessageCircle, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ROUTES } from "@/routes";
 
 interface ProNavigationBarProps {
   currentPage: string;
@@ -18,7 +17,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "pro-dashboard" ? "default" : "ghost"}
             size="lg"
             className="w-full justify-start gap-3"
-            onClick={() => onNavigate(ROUTES.PRO_DASHBOARD)}
+            onClick={() => onNavigate("pro-dashboard")}
           >
             <LayoutGrid className="h-5 w-5" />
             <span>Dashboard</span>
@@ -27,7 +26,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "bookings" ? "default" : "ghost"}
             size="lg"
             className="w-full justify-start gap-3"
-            onClick={() => onNavigate(ROUTES.PRO_BOOKINGS)}
+            onClick={() => onNavigate("bookings")}
           >
             <Calendar className="h-5 w-5" />
             <span>Bookings</span>
@@ -36,7 +35,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "messages" ? "default" : "ghost"}
             size="lg"
             className="w-full justify-start gap-3"
-            onClick={() => onNavigate(ROUTES.PRO_MESSAGES)}
+            onClick={() => onNavigate("messages")}
           >
             <MessageCircle className="h-5 w-5" />
             <span>Messages</span>
@@ -45,7 +44,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "portfolio" ? "default" : "ghost"}
             size="lg"
             className="w-full justify-start gap-3"
-            onClick={() => onNavigate(ROUTES.PRO_PORTFOLIO)}
+            onClick={() => onNavigate("portfolio")}
           >
             <Image className="h-5 w-5" />
             <span>Portfolio</span>
@@ -54,7 +53,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "analytics" ? "default" : "ghost"}
             size="lg"
             className="w-full justify-start gap-3"
-            onClick={() => onNavigate(ROUTES.PRO_ANALYTICS)}
+            onClick={() => onNavigate("analytics")}
           >
             <BarChart2 className="h-5 w-5" />
             <span>Analytics</span>
@@ -63,7 +62,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "settings" ? "default" : "ghost"}
             size="lg"
             className="w-full justify-start gap-3"
-            onClick={() => onNavigate(ROUTES.PRO_SETTINGS)}
+            onClick={() => onNavigate("settings")}
           >
             <Settings className="h-5 w-5" />
             <span>Settings</span>
@@ -81,7 +80,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "pro-dashboard" ? "default" : "ghost"}
             size="sm"
             className="flex flex-col items-center gap-1"
-            onClick={() => onNavigate(ROUTES.PRO_DASHBOARD)}
+            onClick={() => onNavigate("pro-dashboard")}
           >
             <Home className="h-5 w-5" />
             <span className="text-xs">Home</span>
@@ -90,7 +89,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "bookings" ? "default" : "ghost"}
             size="sm"
             className="flex flex-col items-center gap-1"
-            onClick={() => onNavigate(ROUTES.PRO_BOOKINGS)}
+            onClick={() => onNavigate("bookings")}
           >
             <Calendar className="h-5 w-5" />
             <span className="text-xs">Bookings</span>
@@ -99,7 +98,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "messages" ? "default" : "ghost"}
             size="sm"
             className="flex flex-col items-center gap-1"
-            onClick={() => onNavigate(ROUTES.PRO_MESSAGES)}
+            onClick={() => onNavigate("messages")}
           >
             <MessageCircle className="h-5 w-5" />
             <span className="text-xs">Messages</span>
@@ -108,7 +107,7 @@ const ProNavigationBar = ({ currentPage, onNavigate }: ProNavigationBarProps) =>
             variant={currentPage === "profile" ? "default" : "ghost"}
             size="sm"
             className="flex flex-col items-center gap-1"
-            onClick={() => onNavigate(ROUTES.PRO_PROFILE)}
+            onClick={() => onNavigate("profile")}
           >
             <User className="h-5 w-5" />
             <span className="text-xs">Profile</span>
