@@ -17,6 +17,7 @@ import ProAvailability from "@/pages/ProAvailability";
 import ProServices from "@/pages/ProServices";
 import ProPreview from "@/pages/ProPreview";
 import ProDashboard from "@/pages/ProDashboard";
+import { BookingProvider } from "@/context/BookingContext";
 import { useState } from "react";
 
 type Page = 
@@ -72,6 +73,7 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="trustfall-theme">
+      <BookingProvider>
       {hasActiveBooking && pageState.page === "landing" ? (
         <UserDashboard onNavigate={navigateTo} />
       ) : pageState.page === "landing" ? (
@@ -174,6 +176,7 @@ function App() {
           onNavigate={navigateTo}
         />
       ) : null}
+      </BookingProvider>
     </ThemeProvider>
   );
 }
