@@ -17,22 +17,17 @@ type ImageUpload = {
 
 interface UserOnboardingProps {
   onBack: () => void;
-  onContinue: () => void;
-  onLogin: () => void;
+  onContinue: (profileId: string) => void;
 }
 
-const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) => {
+const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const isMounted = useRef(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    password: '',
-    confirmPassword: '',
     location: '',
   });
   
@@ -143,7 +138,7 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
   };
 
   const handleSubmit = async () => {
-    if (!formData.fullName || !formData.email || !formData.password || !formData.location) {
+    if (!formData.fullName || !formData.email || !formData.location) {
       toast({ 
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -153,23 +148,6 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
     }
 
     if (formData.password.length < 6) {
-      toast({
-        title: "Invalid Password",
-        description: "Password must be at least 6 characters long.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast({ 
-        title: "Password Mismatch",
-        description: "Passwords do not match.",
-        variant: "destructive" 
-      });
-      return;
-    }
-
     if ((!frontImage && !frontImageUrl) || (!sideImage && !sideImageUrl)) {
       toast({ 
         title: "Missing Photos",
@@ -182,21 +160,27 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
     setIsLoading(true);
 
     try {
-      // Create new user account
-      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
+      // Create new profile
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          full_name: formData.fullName,
+          email: formData.email,
+          location: formData.location,
+          blur_face: blurFace
+        })
+        .select()
+        .single();
 
-      if (signUpError) throw signUpError;
-      if (!user) throw new Error('Failed to create account');
+      if (profileError) throw profileError;
+      if (!profile) throw new Error('Failed to create profile');
 
       // Only upload new images
       const uploads = await Promise.all([
-        frontImage ? uploadImage(frontImage.file, 'front.jpg') : frontImageUrl,
-        sideImage ? uploadImage(sideImage.file, 'side.jpg') : sideImageUrl,
-        topImage ? uploadImage(topImage.file, 'top.jpg') : topImageUrl,
-        backImage ? uploadImage(backImage.file, 'back.jpg') : backImageUrl,
+        frontImage ? uploadImage(frontImage.file, `${profile.id}/front.jpg`) : frontImageUrl,
+        sideImage ? uploadImage(sideImage.file, `${profile.id}/side.jpg`) : sideImageUrl,
+        topImage ? uploadImage(topImage.file, `${profile.id}/top.jpg`) : topImageUrl,
+        backImage ? uploadImage(backImage.file, `${profile.id}/back.jpg`) : backImageUrl,
       ]);
 
       // Update image URLs in state
@@ -207,20 +191,16 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
 
       // Upsert user profile in database
       const { error } = await supabase.from('user_profiles').upsert({
-        id: user.id,
-        full_name: formData.fullName,
-        email: formData.email,
-        location: formData.location,
+        id: profile.id,
         front_photo_url: uploads[0],
         side_photo_url: uploads[1],
         top_photo_url: uploads[2],
         back_photo_url: uploads[3],
-        blur_face: blurFace
       });
 
       if (error) throw error;
 
-      onContinue();
+      onContinue(profile.id);
     } catch (error) {
       console.error('Error:', error);
       const message = error instanceof Error ? error.message : 'An unexpected error occurred';
@@ -397,13 +377,6 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
         <div className="flex gap-4 pt-6">
           <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={onLogin}
-          >
-            Already have an account?
           </Button>
           <Button 
             className="w-full" 
