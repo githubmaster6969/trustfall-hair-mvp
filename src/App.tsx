@@ -1,5 +1,5 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Home from "@/pages/landing/Home";
+import LandingPage from "@/pages/LandingPage";
 import Upload from "@/pages/user/booking/Upload";
 import Preferences from "@/pages/user/booking/Preferences";
 import Scheduling from "@/pages/user/booking/Scheduling";
@@ -24,7 +24,7 @@ import ProDashboard from "@/pages/ProDashboard";
 import { useState } from "react";
 
 type Page = 
-  | "home"
+  | "landing"
   | "login"
   | "upload"
   | "pro-signup"
@@ -55,7 +55,7 @@ interface PageState {
 }
 
 function App() {
-  const [pageState, setPageState] = useState<PageState>({ page: "home" });
+  const [pageState, setPageState] = useState<PageState>({ page: "landing" });
   const [history, setHistory] = useState<PageState[]>([]);
   const [hasActiveBooking, setHasActiveBooking] = useState(false);
 
@@ -82,8 +82,8 @@ function App() {
     <ThemeProvider defaultTheme="light" storageKey="trustfall-theme">
       {hasActiveBooking && pageState.page === "landing" ? (
         <Dashboard onNavigate={navigateTo} />
-      ) : pageState.page === "home" ? (
-        <Home
+      ) : pageState.page === "landing" ? (
+        <LandingPage
           onGetStarted={() => navigateTo("upload")}
           onExplore={() => navigateTo("explore", undefined, undefined, "landing")}
           onProSignup={() => navigateTo("pro-signup")}
