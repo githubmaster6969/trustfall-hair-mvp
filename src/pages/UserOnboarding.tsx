@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 type ImageUpload = {
   preview: string;
@@ -21,8 +22,9 @@ interface UserOnboardingProps {
 
 const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [userId] = useState(() => localStorage.getItem('userId') || crypto.randomUUID());
+  const [userId, setUserId] = useState<string | null>(null);
   const isMounted = useRef(false);
   
   const [formData, setFormData] = useState({
@@ -45,30 +47,44 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
     if (isMounted.current) return;
     isMounted.current = true;
 
-    localStorage.setItem('userId', userId);
-
-    const loadUserData = async () => {
+    const checkAuthAndLoadData = async () => {
       try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in or sign up to continue.",
+            variant: "destructive"
+          });
+          navigate('/login');
+          return;
+        }
+
+        setUserId(user.id);
+
         const { data: profiles, error } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('id', userId);
+          .eq('id', user.id)
+          .single();
 
-        if (error) throw error;
+        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+          throw error;
+        }
 
         // Check if we have a profile and use it to populate the form
-        if (profiles && profiles.length > 0) {
-          const profile = profiles[0];
+        if (profiles) {
           setFormData({
-            fullName: profile.full_name,
-            email: profile.email,
-            location: profile.location,
+            fullName: profiles.full_name,
+            email: profiles.email,
+            location: profiles.location,
           });
-          setBlurFace(profile.blur_face ?? false);
-          setFrontImageUrl(profile.front_photo_url);
-          setSideImageUrl(profile.side_photo_url);
-          setTopImageUrl(profile.top_photo_url);
-          setBackImageUrl(profile.back_photo_url);
+          setBlurFace(profiles.blur_face ?? false);
+          setFrontImageUrl(profiles.front_photo_url);
+          setSideImageUrl(profiles.side_photo_url);
+          setTopImageUrl(profiles.top_photo_url);
+          setBackImageUrl(profiles.back_photo_url);
         }
       } catch (error) {
         console.error('Error loading user data:', error);
@@ -80,8 +96,8 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
       }
     };
 
-    loadUserData();
-  }, [userId, toast]);
+    checkAuthAndLoadData();
+  }, [toast, navigate]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -163,9 +179,11 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
   );
 
   const uploadImage = async (file: File, path: string) => {
+    if (!userId) throw new Error('No authenticated user');
+
     const { data, error } = await supabase.storage
       .from('user-photos')
-      .upload(path, file, { upsert: true });
+      .upload(`${userId}/${path}`, file, { upsert: true });
 
     if (error) throw error;
     
@@ -177,6 +195,16 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
   };
 
   const handleSubmit = async () => {
+    if (!userId) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in or sign up to continue.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+
     if ((!frontImage && !frontImageUrl) || (!sideImage && !sideImageUrl) || !formData.fullName || !formData.email || !formData.location) {
       toast({
         title: "Missing Information",
@@ -191,10 +219,10 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
     try {
       // Only upload new images
       const uploads = await Promise.all([
-        frontImage ? uploadImage(frontImage.file, `${userId}/front.jpg`) : frontImageUrl,
-        sideImage ? uploadImage(sideImage.file, `${userId}/side.jpg`) : sideImageUrl,
-        topImage ? uploadImage(topImage.file, `${userId}/top.jpg`) : topImageUrl,
-        backImage ? uploadImage(backImage.file, `${userId}/back.jpg`) : backImageUrl,
+        frontImage ? uploadImage(frontImage.file, 'front.jpg') : frontImageUrl,
+        sideImage ? uploadImage(sideImage.file, 'side.jpg') : sideImageUrl,
+        topImage ? uploadImage(topImage.file, 'top.jpg') : topImageUrl,
+        backImage ? uploadImage(backImage.file, 'back.jpg') : backImageUrl,
       ]);
 
       // Update image URLs in state
@@ -230,6 +258,10 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
       setIsLoading(false);
     }
   };
+
+  if (!userId) {
+    return null; // Don't render anything while checking authentication
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
