@@ -154,7 +154,6 @@ function App() {
         <Messages />
       ) : pageState.page === "bookings" ? (
         <Bookings />
-        />
       ) : pageState.page === "explore" ? (
         <Explore
           onBack={navigateBack}
