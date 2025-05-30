@@ -1,6 +1,7 @@
 import { ArrowLeft, Calendar, MapPin, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
@@ -14,6 +15,7 @@ interface Service {
   name: string;
   price: number;
   duration: string;
+  description: string;
 }
 
 interface Professional {
@@ -36,10 +38,30 @@ const mockProfessional: Professional = {
   avatar: "https://images.pexels.com/photos/1484791/pexels-photo-1484791.jpeg",
   bio: "With over 8 years of experience, I specialize in modern men's cuts and creative designs. My approach combines classic techniques with contemporary styles to create looks that enhance your natural features.",
   services: [
-    { name: "Haircut & Style", price: 45, duration: "45 min" },
-    { name: "Fade & Design", price: 55, duration: "1 hr" },
-    { name: "Beard Trim", price: 25, duration: "30 min" },
-    { name: "Hair & Beard Combo", price: 65, duration: "1 hr 15 min" }
+    { 
+      name: "Haircut & Style", 
+      price: 45, 
+      duration: "45 min",
+      description: "Classic haircut with styling. Includes consultation, wash, cut, and style with premium products."
+    },
+    { 
+      name: "Fade & Design", 
+      price: 55, 
+      duration: "1 hr",
+      description: "Precision fade with optional design work. Perfect for creating unique, personalized styles."
+    },
+    { 
+      name: "Beard Trim", 
+      price: 25, 
+      duration: "30 min",
+      description: "Professional beard grooming including shape, trim, and line-up. Hot towel service included."
+    },
+    { 
+      name: "Hair & Beard Combo", 
+      price: 65, 
+      duration: "1 hr 15 min",
+      description: "Complete grooming package combining our signature haircut with full beard service."
+    }
   ],
   portfolio: [
     "https://images.pexels.com/photos/1484791/pexels-photo-1484791.jpeg",
@@ -125,49 +147,70 @@ const ProProfile = ({ onBack, onBook }: ProProfileProps) => {
           <Card className="p-6 space-y-4">
             <h2 className="text-xl font-semibold">Services & Pricing</h2>
             <div className="space-y-3">
-              {mockProfessional.services.map((service) => (
-                <div
+              {mockProfessional.services.map((service, index) => (
+                <TooltipProvider
                   key={service.name}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
                 >
-                  <div>
-                    <p className="font-medium">{service.name}</p>
-                    <p className="text-sm text-muted-foreground">{service.duration}</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div>
+                          <p className="font-medium">{service.name}</p>
+                          <p className="text-sm text-muted-foreground">{service.duration}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <p className="font-medium">${service.price}</p>
+                          <Button 
+                            size="sm"
+                            onClick={() => onBook()}
+                          >
+                            Book
+                          </Button>
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>{service.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Recent Work</h2>
+              <Button variant="ghost" size="sm">View All</Button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {mockProfessional.portfolio.map((photo, index) => (
+                <div 
+                  key={index}
+                  className="group relative aspect-square rounded-lg overflow-hidden cursor-pointer"
+                  onClick={() => {/* TODO: Open portfolio detail view */}}
+                >
+                  <img
+                    src={photo}
+                    alt={`Portfolio ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="text-white text-center p-4">
+                      <p className="font-medium">View Details</p>
+                      <p className="text-sm">Click to see transformation</p>
+                    </div>
                   </div>
-                  <p className="font-medium">${service.price}</p>
                 </div>
               ))}
             </div>
           </Card>
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Recent Work</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {mockProfessional.portfolio.map((photo, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.02 }}
-                className="aspect-square rounded-lg overflow-hidden shadow-sm"
-              >
-                <img
-                  src={photo}
-                  alt={`Portfolio ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
         <div className="flex flex-col sm:flex-row gap-4 pt-6">
           <Button className="flex-1" size="lg" onClick={onBook}>
             <Calendar className="w-4 h-4 mr-2" />
             Book Now
-          </Button>
-          <Button variant="outline" className="flex-1" size="lg">
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Message
           </Button>
         </div>
       </motion.div>
