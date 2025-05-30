@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Calendar } from "@/components/ui/calendar";
+import { useBooking } from "@/context/BookingContext";
 import { motion } from "framer-motion";
 
 interface SchedulingPreferencesProps {
@@ -14,10 +15,20 @@ interface SchedulingPreferencesProps {
 }
 
 const SchedulingPreferences = ({ onBack, onContinue }: SchedulingPreferencesProps) => {
+  const { bookingData, updatePreferences } = useBooking();
   const [radius, setRadius] = useState([5]);
   const [date, setDate] = useState<Date>();
   const [isFlexible, setIsFlexible] = useState(false);
   const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (bookingData.preferences) {
+      setRadius([bookingData.preferences.radius]);
+      setDate(bookingData.preferences.date);
+      setIsFlexible(bookingData.preferences.isFlexible);
+      setSelectedTimes(bookingData.preferences.times);
+    }
+  }, [bookingData.preferences]);
 
   const timeSlots = [
     "9:00 AM - 10:00 AM",
@@ -36,6 +47,16 @@ const SchedulingPreferences = ({ onBack, onContinue }: SchedulingPreferencesProp
         ? prev.filter(t => t !== time)
         : [...prev, time]
     );
+  };
+
+  const handleContinue = () => {
+    updatePreferences({
+      radius: radius[0],
+      date,
+      times: selectedTimes,
+      isFlexible
+    });
+    onContinue();
   };
 
   return (
@@ -138,9 +159,9 @@ const SchedulingPreferences = ({ onBack, onContinue }: SchedulingPreferencesProp
           <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
           </Button>
-          <Button 
+          <Button
             className="w-full" 
-            onClick={onContinue}
+            onClick={handleContinue}
             disabled={!date || selectedTimes.length === 0}
           >
             Continue

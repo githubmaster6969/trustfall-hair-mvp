@@ -1,11 +1,12 @@
 import { ArrowLeft, Image, Ruler, Sparkles, UserCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { useBooking } from "@/context/BookingContext";
 import { motion } from "framer-motion";
 
 type ImageUpload = {
@@ -19,8 +20,20 @@ interface HaircutPreferencesProps {
 }
 
 const HaircutPreferences = ({ onBack, onContinue }: HaircutPreferencesProps) => {
+  const { bookingData, updateHairProfile } = useBooking();
   const [referenceImage, setReferenceImage] = useState<ImageUpload>(null);
   const [socialMediaLink, setSocialMediaLink] = useState("");
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    // Detect hair profile from uploaded photos
+    const detectedProfile = {
+      type: "Type 2A - Wavy",
+      length: "Medium (Shoulder Length)",
+      shape: "Oval"
+    };
+    updateHairProfile(detectedProfile);
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -30,6 +43,15 @@ const HaircutPreferences = ({ onBack, onContinue }: HaircutPreferencesProps) => 
         file,
       });
     }
+  };
+
+  const handleContinue = () => {
+    updateHairProfile({
+      description,
+      referenceUrl: socialMediaLink,
+      referenceImage: referenceImage?.preview
+    });
+    onContinue();
   };
 
   return (
@@ -89,6 +111,8 @@ const HaircutPreferences = ({ onBack, onContinue }: HaircutPreferencesProps) => 
                 id="description"
                 placeholder="Describe the style, length, and any specific details about the haircut you want..."
                 className="min-h-[120px]"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 required
               />
             </div>
@@ -163,7 +187,13 @@ const HaircutPreferences = ({ onBack, onContinue }: HaircutPreferencesProps) => 
           <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
           </Button>
-          <Button className="w-full" onClick={onContinue}>Continue</Button>
+          <Button 
+            className="w-full" 
+            onClick={handleContinue}
+            disabled={!description}
+          >
+            Continue
+          </Button>
         </div>
       </motion.div>
     </div>

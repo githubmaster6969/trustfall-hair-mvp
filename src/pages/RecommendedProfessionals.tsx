@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { useBooking } from "@/context/BookingContext";
 import { motion } from "framer-motion";
 
 interface RecommendedProfessionalsProps {
@@ -112,6 +113,7 @@ const mockProfessionals: Professional[] = [
 ];
 
 const RecommendedProfessionals = ({ onBack, onViewProfile, onBook, onExplore }: RecommendedProfessionalsProps) => {
+  const { selectProfessional } = useBooking();
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'bookings'>('distance');
 
   const sortedProfessionals = [...mockProfessionals].sort((a, b) => {
@@ -124,6 +126,11 @@ const RecommendedProfessionals = ({ onBack, onViewProfile, onBook, onExplore }: 
         return a.distance - b.distance;
     }
   });
+
+  const handleBook = (pro: Professional) => {
+    selectProfessional(pro);
+    onBook(pro.id);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
@@ -242,7 +249,7 @@ const RecommendedProfessionals = ({ onBack, onViewProfile, onBook, onExplore }: 
                   </Button>
                   <Button 
                     className="w-full"
-                    onClick={() => onBook(pro.id)}
+                    onClick={() => handleBook(pro)}
                   >
                     Book Now
                   </Button>
