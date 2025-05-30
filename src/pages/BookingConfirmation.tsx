@@ -6,7 +6,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { useBooking } from "@/context/BookingContext";
 import { motion } from "framer-motion";
 
 interface BookingConfirmationProps {
@@ -63,12 +62,14 @@ const mockUserPreferences: UserPreferences = {
 };
 
 const BookingConfirmation = ({ onBack, onSendBookingRequest }: BookingConfirmationProps) => {
-  const { bookingData } = useBooking();
   const [message, setMessage] = useState("");
   const [agreed, setAgreed] = useState(false);
 
-  const selectedService = bookingData.selectedService;
-  const selectedDate = bookingData.preferences.date;
+  // Mock selected service and time
+  const selectedService = mockProfessional.services[0];
+  const selectedDate = new Date();
+  selectedDate.setDate(selectedDate.getDate() + 2);
+  selectedDate.setHours(14, 0, 0, 0);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -112,7 +113,7 @@ const BookingConfirmation = ({ onBack, onSendBookingRequest }: BookingConfirmati
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-4 gap-2">
-                  {Object.entries(bookingData.photos).map(([key, url]) => (
+                  {Object.entries(mockUserPreferences.photos).map(([key, url]) => (
                     <div key={key} className="aspect-square rounded-lg overflow-hidden">
                       <img
                         src={url}
@@ -131,7 +132,7 @@ const BookingConfirmation = ({ onBack, onSendBookingRequest }: BookingConfirmati
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  {bookingData.hairProfile.description}
+                  {mockUserPreferences.description}
                 </p>
               </CardContent>
             </Card>

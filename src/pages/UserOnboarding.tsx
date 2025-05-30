@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
-import { useBooking } from "@/context/BookingContext";
 import { motion } from "framer-motion";
 
 type ImageUpload = {
@@ -19,15 +18,11 @@ interface UserOnboardingProps {
 }
 
 const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
-  const { bookingData, setBookingData, updatePhotos } = useBooking();
   const [frontImage, setFrontImage] = useState<ImageUpload>(null);
   const [sideImage, setSideImage] = useState<ImageUpload>(null);
   const [topImage, setTopImage] = useState<ImageUpload>(null);
   const [backImage, setBackImage] = useState<ImageUpload>(null);
   const [blurFace, setBlurFace] = useState(false);
-  const [name, setName] = useState(bookingData.name);
-  const [email, setEmail] = useState(bookingData.email);
-  const [location, setLocation] = useState(bookingData.location);
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -39,17 +34,7 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
         preview: URL.createObjectURL(file),
         file,
       });
-      updatePhotos({ [e.target.id.split('-')[1].toLowerCase()]: URL.createObjectURL(file) });
     }
-  };
-
-  const handleContinue = () => {
-    setBookingData({
-      name,
-      email,
-      location,
-    });
-    onContinue();
   };
 
   const ImageUploadBox = ({
@@ -129,20 +114,12 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
           <div className="grid gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-                required
-              />
+              <Input id="name" placeholder="Enter your name" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 placeholder="Enter your email"
                 required
@@ -152,8 +129,6 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
               <Label htmlFor="location">City or ZIP Code</Label>
               <Input
                 id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
                 placeholder="Enter your location"
                 required
               />
@@ -206,13 +181,7 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
           <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
           </Button>
-          <Button
-            className="w-full"
-            onClick={handleContinue}
-            disabled={!name || !email || !location || !frontImage || !sideImage}
-          >
-            Continue
-          </Button>
+          <Button className="w-full" onClick={onContinue}>Continue</Button>
         </div>
       </motion.div>
     </div>
