@@ -29,8 +29,12 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
     fullName: '',
     email: '',
     location: '',
+    password: '',
+    confirmPassword: ''
   });
   
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [frontImage, setFrontImage] = useState<ImageUpload>(null);
   const [sideImage, setSideImage] = useState<ImageUpload>(null);
   const [topImage, setTopImage] = useState<ImageUpload>(null);
@@ -148,6 +152,23 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
     }
 
     if (formData.password.length < 6) {
+      toast({
+        title: "Invalid Password",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if ((!frontImage && !frontImageUrl) || (!sideImage && !sideImageUrl)) {
       toast({ 
         title: "Missing Photos",
