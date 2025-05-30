@@ -152,6 +152,15 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast({
+        title: "Invalid Password",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       toast({ 
         title: "Password Mismatch",
@@ -271,7 +280,7 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Password (minimum 6 characters)</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -281,6 +290,7 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
                   onChange={handleFormChange}
                   placeholder="Create a strong password"
                   required
+                  minLength={6}
                 />
                 <Button
                   type="button"
@@ -308,6 +318,7 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
                   onChange={handleFormChange}
                   placeholder="Confirm your password"
                   required
+                  minLength={6}
                 />
                 <Button
                   type="button"
