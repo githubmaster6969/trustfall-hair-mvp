@@ -49,7 +49,7 @@ interface PageState {
 function App() {
   const [pageState, setPageState] = useState<PageState>({ page: "landing" });
   const [history, setHistory] = useState<PageState[]>([]);
-  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const [hasActiveBooking, setHasActiveBooking] = useState(false);
 
   const navigateTo = (page: Page, proId?: string, transformationId?: string, source?: Page) => {
     // Save current state to history before navigating
@@ -72,8 +72,10 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="trustfall-theme">
-      {pageState.page === "landing" ? (
-        <LandingPage
+      {hasActiveBooking && pageState.page === "landing" ? (
+        <UserDashboard onNavigate={navigateTo} />
+      ) : pageState.page === "landing" ? (
+        <LandingPage 
           onGetStarted={() => navigateTo("onboarding")}
           onExplore={() => navigateTo("explore", undefined, undefined, "landing")}
           onProSignup={() => navigateTo("pro-signup")}
@@ -81,10 +83,7 @@ function App() {
       ) : pageState.page === "onboarding" ? (
         <UserOnboarding 
           onBack={navigateBack}
-          onContinue={(profileId) => {
-            setCurrentProfileId(profileId);
-            navigateTo("preferences");
-          }}
+          onContinue={() => navigateTo("preferences")}
         />
       ) : pageState.page === "pro-signup" ? (
         <ProSignup
@@ -119,19 +118,16 @@ function App() {
       ) : pageState.page === "preferences" ? (
         <HaircutPreferences
           onBack={navigateBack}
-          profileId={currentProfileId!}
           onContinue={() => navigateTo("scheduling")}
         />
       ) : pageState.page === "scheduling" ? (
         <SchedulingPreferences
           onBack={navigateBack}
-          profileId={currentProfileId!}
           onContinue={() => navigateTo("gallery")}
         />
       ) : pageState.page === "gallery" ? (
         <RecommendedProfessionals
           onBack={navigateBack}
-          profileId={currentProfileId!}
           onViewProfile={(proId) => navigateTo("profile", proId)}
           onBook={(proId) => navigateTo("booking", proId)}
           onExplore={() => navigateTo("explore")}
@@ -158,16 +154,20 @@ function App() {
       ) : pageState.page === "booking" ? (
         <BookingConfirmation
           proId={pageState.proId!}
-          profileId={currentProfileId!}
           onBack={navigateBack}
           onSendBookingRequest={() => {
+            setHasActiveBooking(true);
             navigateTo("bookingSuccess", pageState.proId);
           }}
         />
       ) : pageState.page === "bookingSuccess" ? (
         <BookingSuccessPage
           proId={pageState.proId!}
-          onViewLanding={() => navigateTo("landing")}
+          onViewDashboard={() => navigateTo("dashboard")}
+        />
+      ) : pageState.page === "dashboard" ? (
+        <UserDashboard
+          onNavigate={navigateTo}
         />
       ) : pageState.page === "pro-dashboard" ? (
         <ProDashboard
