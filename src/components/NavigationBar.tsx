@@ -42,7 +42,7 @@ const NavigationBar = ({ currentPage, onNavigate }: NavigationBarProps) => {
             variant={currentPage === "profile" ? "default" : "ghost"}
             size="sm"
             className="flex flex-col items-center gap-1"
-            onClick={() => onNavigate("profile")}
+            onClick={() => onNavigate("user-profile")}
           >
             <User className="h-5 w-5" />
             <span className="text-xs">Profile</span>
