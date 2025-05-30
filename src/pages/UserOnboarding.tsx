@@ -2,12 +2,13 @@ import { ArrowLeft, Camera, Upload } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"; 
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 
 type ImageUpload = {
   preview: string;
@@ -23,12 +24,15 @@ interface UserOnboardingProps {
 const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const isMounted = useRef(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     location: '',
   });
   
@@ -41,62 +45,6 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
   const [topImageUrl, setTopImageUrl] = useState<string | null>(null);
   const [backImageUrl, setBackImageUrl] = useState<string | null>(null);
   const [blurFace, setBlurFace] = useState(false);
-
-  useEffect(() => {
-    if (isMounted.current) return;
-    isMounted.current = true;
-
-    const checkAuthAndLoadData = async () => {
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
-        if (authError || !user) {
-          toast({
-            title: "Authentication Required",
-            description: "Please log in or sign up to continue.",
-            variant: "destructive"
-          });
-          onLogin();
-          return;
-        }
-
-        setUserId(user.id);
-
-        const { data: profiles, error } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
-          throw error;
-        }
-
-        // Check if we have a profile and use it to populate the form
-        if (profiles) {
-          setFormData({
-            fullName: profiles.full_name,
-            email: profiles.email,
-            location: profiles.location,
-          });
-          setBlurFace(profiles.blur_face ?? false);
-          setFrontImageUrl(profiles.front_photo_url);
-          setSideImageUrl(profiles.side_photo_url);
-          setTopImageUrl(profiles.top_photo_url);
-          setBackImageUrl(profiles.back_photo_url);
-        }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-        toast({
-          title: "Error Loading Profile",
-          description: "Unable to load your profile data. You can continue with creating a new profile.",
-          variant: "default"
-        });
-      }
-    };
-
-    checkAuthAndLoadData();
-  }, [toast, onLogin]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -178,11 +126,12 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
   );
 
   const uploadImage = async (file: File, path: string) => {
-    if (!userId) throw new Error('No authenticated user');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) throw new Error('No authenticated user');
 
     const { data, error } = await supabase.storage
       .from('user-photos')
-      .upload(`${userId}/${path}`, file, { upsert: true });
+      .upload(`${user.id}/${path}`, file, { upsert: true });
 
     if (error) throw error;
     
@@ -194,28 +143,45 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
   };
 
   const handleSubmit = async () => {
-    if (!userId) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in or sign up to continue.",
-        variant: "destructive"
-      });
-      onLogin();
+    if (!formData.fullName || !formData.email || !formData.password || !formData.location) {
+      toast({ 
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive" 
+      }); 
       return;
     }
 
-    if ((!frontImage && !frontImageUrl) || (!sideImage && !sideImageUrl) || !formData.fullName || !formData.email || !formData.location) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields and upload required photos.",
-        variant: "destructive"
+    if (formData.password !== formData.confirmPassword) {
+      toast({ 
+        title: "Password Mismatch",
+        description: "Passwords do not match.",
+        variant: "destructive" 
       });
+      return;
+    }
+
+    if ((!frontImage && !frontImageUrl) || (!sideImage && !sideImageUrl)) {
+      toast({ 
+        title: "Missing Photos",
+        description: "Please upload the required front and side view photos.",
+        variant: "destructive" 
+      }); 
       return;
     }
 
     setIsLoading(true);
 
     try {
+      // Create new user account
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signUpError) throw signUpError;
+      if (!user) throw new Error('Failed to create account');
+
       // Only upload new images
       const uploads = await Promise.all([
         frontImage ? uploadImage(frontImage.file, 'front.jpg') : frontImageUrl,
@@ -232,7 +198,7 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
 
       // Upsert user profile in database
       const { error } = await supabase.from('user_profiles').upsert({
-        id: userId,
+        id: user.id,
         full_name: formData.fullName,
         email: formData.email,
         location: formData.location,
@@ -248,19 +214,16 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
       onContinue();
     } catch (error) {
       console.error('Error:', error);
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: "Error",
-        description: "There was a problem saving your information. Please try again.",
+        description: message,
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (!userId) {
-    return null; // Don't render anything while checking authentication
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
@@ -306,6 +269,60 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
                 placeholder="Enter your email"
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleFormChange}
+                  placeholder="Create a strong password"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={handleFormChange}
+                  placeholder="Confirm your password"
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">City or ZIP Code</Label>
@@ -369,6 +386,13 @@ const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) =>
         <div className="flex gap-4 pt-6">
           <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={onLogin}
+          >
+            Already have an account?
           </Button>
           <Button 
             className="w-full" 
