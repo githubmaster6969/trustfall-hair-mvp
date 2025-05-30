@@ -1,7 +1,6 @@
 import { Scissors, User, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { routes } from "@/routes/routes";
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -31,11 +30,11 @@ const LandingPage = ({ onGetStarted, onExplore, onProSignup }: LandingPageProps)
           <motion.div
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => onGetStarted()}
           >
             <Button 
               variant="default" 
               size="lg"
+              onClick={onGetStarted}
               className="w-full py-6 text-base flex items-center justify-center gap-2 shadow-sm"
             >
               <User className="h-5 w-5" />
@@ -46,11 +45,11 @@ const LandingPage = ({ onGetStarted, onExplore, onProSignup }: LandingPageProps)
           <motion.div
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => onProSignup()}
           >
             <Button 
               variant="outline" 
               size="lg"
+              onClick={onProSignup}
               className="w-full py-6 text-base flex items-center justify-center gap-2 shadow-sm"
             >
               <Scissors className="h-5 w-5" />
@@ -61,17 +60,26 @@ const LandingPage = ({ onGetStarted, onExplore, onProSignup }: LandingPageProps)
           <motion.div
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => onExplore()}
           >
             <Button 
               variant="ghost" 
               size="lg"
+              onClick={onExplore}
               className="w-full py-6 text-base flex items-center justify-center gap-2"
             >
               <Search className="h-5 w-5" />
               Just Browsing – Explore Styles
             </Button>
           </motion.div>
+        </div>
+
+        <div className="mt-8">
+          <a 
+            href="#" 
+            className="text-sm text-primary hover:underline transition-all"
+          >
+            Already have an account? Log In
+          </a>
         </div>
       </motion.div>
     </div>
