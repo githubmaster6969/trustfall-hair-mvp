@@ -1,5 +1,5 @@
 import { ArrowLeft, Camera, Upload } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,16 +22,58 @@ interface UserOnboardingProps {
 const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [userId] = useState(() => localStorage.getItem('userId') || crypto.randomUUID());
+  const isMounted = useRef(false);
+  
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     location: '',
   });
+  
   const [frontImage, setFrontImage] = useState<ImageUpload>(null);
   const [sideImage, setSideImage] = useState<ImageUpload>(null);
   const [topImage, setTopImage] = useState<ImageUpload>(null);
   const [backImage, setBackImage] = useState<ImageUpload>(null);
+  const [frontImageUrl, setFrontImageUrl] = useState<string | null>(null);
+  const [sideImageUrl, setSideImageUrl] = useState<string | null>(null);
+  const [topImageUrl, setTopImageUrl] = useState<string | null>(null);
+  const [backImageUrl, setBackImageUrl] = useState<string | null>(null);
   const [blurFace, setBlurFace] = useState(false);
+
+  useEffect(() => {
+    if (isMounted.current) return;
+    isMounted.current = true;
+
+    localStorage.setItem('userId', userId);
+
+    const loadUserData = async () => {
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (profile) {
+          setFormData({
+            fullName: profile.full_name,
+            email: profile.email,
+            location: profile.location,
+          });
+          setBlurFace(profile.blur_face);
+          setFrontImageUrl(profile.front_photo_url);
+          setSideImageUrl(profile.side_photo_url);
+          setTopImageUrl(profile.top_photo_url);
+          setBackImageUrl(profile.back_photo_url);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
+  }, [userId]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,11 +96,13 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
   const ImageUploadBox = ({
     image,
     setImage,
+    imageUrl,
     label,
     required = false,
   }: {
     image: ImageUpload;
     setImage: (image: ImageUpload) => void;
+    imageUrl: string | null;
     label: string;
     required?: boolean;
   }) => (
@@ -69,15 +113,15 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
         onChange={(e) => handleImageUpload(e, setImage)}
         className="hidden"
         id={`upload-${label}`}
-        required={required}
+        required={required && !imageUrl}
       />
       <Label
         htmlFor={`upload-${label}`}
         className="block w-full aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 transition-colors cursor-pointer"
       >
-        {image ? (
+        {image || imageUrl ? (
           <img
-            src={image.preview}
+            src={image?.preview || imageUrl}
             alt={label}
             className="w-full h-full object-cover rounded-lg"
           />
@@ -91,12 +135,18 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
           </div>
         )}
       </Label>
-      {image && (
+      {(image || imageUrl) && (
         <Button
           variant="outline"
           size="icon"
           className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => setImage(null)}
+          onClick={() => {
+            setImage(null);
+            if (label === "Front View") setFrontImageUrl(null);
+            if (label === "Side View") setSideImageUrl(null);
+            if (label === "Top View") setTopImageUrl(null);
+            if (label === "Back View") setBackImageUrl(null);
+          }}
         >
           ×
         </Button>
@@ -107,14 +157,19 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
   const uploadImage = async (file: File, path: string) => {
     const { data, error } = await supabase.storage
       .from('user-photos')
-      .upload(path, file);
+      .upload(path, file, { upsert: true });
 
     if (error) throw error;
-    return data.path;
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('user-photos')
+      .getPublicUrl(data.path);
+      
+    return publicUrl;
   };
 
   const handleSubmit = async () => {
-    if (!frontImage || !sideImage || !formData.fullName || !formData.email || !formData.location) {
+    if ((!frontImage && !frontImageUrl) || (!sideImage && !sideImageUrl) || !formData.fullName || !formData.email || !formData.location) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields and upload required photos.",
@@ -126,17 +181,22 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
     setIsLoading(true);
 
     try {
-      // Upload images to Supabase Storage
-      const userId = crypto.randomUUID();
+      // Only upload new images
       const uploads = await Promise.all([
-        uploadImage(frontImage.file, `${userId}/front.jpg`),
-        uploadImage(sideImage.file, `${userId}/side.jpg`),
-        topImage ? uploadImage(topImage.file, `${userId}/top.jpg`) : null,
-        backImage ? uploadImage(backImage.file, `${userId}/back.jpg`) : null,
+        frontImage ? uploadImage(frontImage.file, `${userId}/front.jpg`) : frontImageUrl,
+        sideImage ? uploadImage(sideImage.file, `${userId}/side.jpg`) : sideImageUrl,
+        topImage ? uploadImage(topImage.file, `${userId}/top.jpg`) : topImageUrl,
+        backImage ? uploadImage(backImage.file, `${userId}/back.jpg`) : backImageUrl,
       ]);
 
-      // Create user profile in database
-      const { error } = await supabase.from('user_profiles').insert({
+      // Update image URLs in state
+      setFrontImageUrl(uploads[0]);
+      setSideImageUrl(uploads[1]);
+      setTopImageUrl(uploads[2]);
+      setBackImageUrl(uploads[3]);
+
+      // Upsert user profile in database
+      const { error } = await supabase.from('user_profiles').upsert({
         id: userId,
         full_name: formData.fullName,
         email: formData.email,
@@ -145,7 +205,7 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
         side_photo_url: uploads[1],
         top_photo_url: uploads[2],
         back_photo_url: uploads[3],
-        blur_face: blurFace,
+        blur_face: blurFace
       });
 
       if (error) throw error;
@@ -240,23 +300,27 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
               <ImageUploadBox
                 image={frontImage}
                 setImage={setFrontImage}
+                imageUrl={frontImageUrl}
                 label="Front View"
                 required
               />
               <ImageUploadBox
                 image={sideImage}
                 setImage={setSideImage}
+                imageUrl={sideImageUrl}
                 label="Side View"
                 required
               />
               <ImageUploadBox
                 image={topImage}
                 setImage={setTopImage}
+                imageUrl={topImageUrl}
                 label="Top View (Optional)"
               />
               <ImageUploadBox
                 image={backImage}
                 setImage={setBackImage}
+                imageUrl={backImageUrl}
                 label="Back View (Optional)"
               />
             </div>
