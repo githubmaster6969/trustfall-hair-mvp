@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 
 type ImageUpload = {
   preview: string;
@@ -18,11 +17,11 @@ type ImageUpload = {
 interface UserOnboardingProps {
   onBack: () => void;
   onContinue: () => void;
+  onLogin: () => void;
 }
 
-const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
+const UserOnboarding = ({ onBack, onContinue, onLogin }: UserOnboardingProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const isMounted = useRef(false);
@@ -57,7 +56,7 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
             description: "Please log in or sign up to continue.",
             variant: "destructive"
           });
-          navigate('/login');
+          onLogin();
           return;
         }
 
@@ -97,7 +96,7 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
     };
 
     checkAuthAndLoadData();
-  }, [toast, navigate]);
+  }, [toast, onLogin]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -201,7 +200,7 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
         description: "Please log in or sign up to continue.",
         variant: "destructive"
       });
-      navigate('/login');
+      onLogin();
       return;
     }
 

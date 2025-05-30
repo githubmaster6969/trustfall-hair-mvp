@@ -89,6 +89,7 @@ function App() {
         <UserOnboarding 
           onBack={navigateBack}
           onContinue={() => navigateTo("preferences")}
+          onLogin={() => navigateTo("login")}
         />
       ) : pageState.page === "pro-signup" ? (
         <ProSignup
