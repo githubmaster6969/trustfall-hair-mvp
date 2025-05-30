@@ -17,6 +17,7 @@ import ProAvailability from "@/pages/ProAvailability";
 import ProServices from "@/pages/ProServices";
 import ProPreview from "@/pages/ProPreview";
 import ProDashboard from "@/pages/ProDashboard";
+import Login from "@/pages/login";
 import { useState } from "react";
 
 type Page = 
