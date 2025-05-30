@@ -7,12 +7,8 @@ import RecommendedProfessionals from "@/pages/RecommendedProfessionals";
 import ProProfile from "@/pages/ProProfile";
 import BookingConfirmation from "@/pages/BookingConfirmation";
 import BookingSuccessPage from "@/pages/BookingSuccessPage";
-import Dashboard from "@/pages/user/Dashboard";
-import Explore from "@/pages/user/Explore";
-import Profile from "@/pages/user/Profile";
-import Messages from "@/pages/user/Messages";
-import Bookings from "@/pages/user/Bookings";
-import Login from "@/pages/login";
+import UserDashboard from "@/pages/UserDashboard";
+import ExplorePage from "@/pages/ExplorePage";
 import TransformationPage from "@/pages/TransformationPage";
 import ProSignup from "@/pages/ProSignup";
 import ProSocialLinks from "@/pages/ProSocialLinks";
@@ -22,13 +18,10 @@ import ProServices from "@/pages/ProServices";
 import ProPreview from "@/pages/ProPreview";
 import ProDashboard from "@/pages/ProDashboard";
 import { useState } from "react";
-import { BookingProvider } from "@/context/BookingContext";
-import { useEffect } from "react";
 
 type Page = 
-  | "landing"
-  | "login"
-  | "upload"
+  | "landing" 
+  | "onboarding" 
   | "pro-signup"
   | "pro-social-links"
   | "pro-portfolio"
@@ -36,18 +29,15 @@ type Page =
   | "pro-services"
   | "pro-preview"
   | "pro-dashboard"
-  | "preferences"
-  | "scheduling"
-  | "matches"
-  | "pro-profile"
-  | "user-profile"
-  | "confirm"
-  | "explore"
+  | "preferences" 
+  | "scheduling" 
+  | "gallery" 
+  | "profile" 
+  | "booking" 
+  | "explore" 
   | "transformation"
-  | "success"
-  | "dashboard"
-  | "messages"
-  | "bookings";
+  | "bookingSuccess"
+  | "dashboard";
 
 interface PageState {
   page: Page;
@@ -59,26 +49,15 @@ interface PageState {
 function App() {
   const [pageState, setPageState] = useState<PageState>({ page: "landing" });
   const [history, setHistory] = useState<PageState[]>([]);
-  const [hasActiveBooking, setHasActiveBooking] = useState(() => {
-    const stored = localStorage.getItem("hasActiveBooking");
-    return stored === "true";
-  });
+  const [hasActiveBooking, setHasActiveBooking] = useState(false);
 
   const navigateTo = (page: Page, proId?: string, transformationId?: string, source?: Page) => {
     // Save current state to history before navigating
     if (pageState.page !== page) {
       setHistory(prev => [...prev, pageState]);
     }
-    // Reset history when going to landing to prevent loops
-    if (page === "landing") {
-      setHistory([]);
-    }
     setPageState({ page, proId, transformationId, source });
   };
-
-  useEffect(() => {
-    localStorage.setItem("hasActiveBooking", hasActiveBooking.toString());
-  }, [hasActiveBooking]);
 
   const navigateBack = () => {
     const previousState = history[history.length - 1];
@@ -86,28 +65,23 @@ function App() {
       setPageState(previousState);
       setHistory(prev => prev.slice(0, -1));
     } else {
-      // Only go to landing if we're not already there
-      if (pageState.page !== "landing") {
-        setPageState({ page: "landing" });
-      }
+      // Default fallback if no history exists
+      setPageState({ page: "landing" });
     }
   };
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="trustfall-theme">
-      <BookingProvider>
       {hasActiveBooking && pageState.page === "landing" ? (
-        <Dashboard onNavigate={navigateTo} />
+        <UserDashboard onNavigate={navigateTo} />
       ) : pageState.page === "landing" ? (
-        <LandingPage
-          onGetStarted={() => navigateTo("upload")}
+        <LandingPage 
+          onGetStarted={() => navigateTo("onboarding")}
           onExplore={() => navigateTo("explore", undefined, undefined, "landing")}
           onProSignup={() => navigateTo("pro-signup")}
         />
-      ) : pageState.page === "login" ? (
-        <Login />
-      ) : pageState.page === "upload" ? (
-        <UserOnboarding
+      ) : pageState.page === "onboarding" ? (
+        <UserOnboarding 
           onBack={navigateBack}
           onContinue={() => navigateTo("preferences")}
         />
@@ -149,56 +123,50 @@ function App() {
       ) : pageState.page === "scheduling" ? (
         <SchedulingPreferences
           onBack={navigateBack}
-          onContinue={() => navigateTo("matches")}
+          onContinue={() => navigateTo("gallery")}
         />
-      ) : pageState.page === "matches" ? (
+      ) : pageState.page === "gallery" ? (
         <RecommendedProfessionals
           onBack={navigateBack}
-          onViewProfile={(proId) => navigateTo("pro-profile", proId)}
-          onBook={(proId) => navigateTo("confirm", proId)}
+          onViewProfile={(proId) => navigateTo("profile", proId)}
+          onBook={(proId) => navigateTo("booking", proId)}
           onExplore={() => navigateTo("explore")}
         />
-      ) : pageState.page === "pro-profile" ? (
+      ) : pageState.page === "profile" ? (
         <ProProfile
           proId={pageState.proId!}
-          onBack={() => navigateBack()}
-          onBook={() => navigateTo("confirm", pageState.proId)}
-        />
-      ) : pageState.page === "user-profile" ? (
-        <Profile />
-      ) : pageState.page === "messages" ? (
-        <Messages />
-      ) : pageState.page === "bookings" ? (
-        <Bookings />
-      ) : pageState.page === "explore" ? (
-        <Explore
           onBack={navigateBack}
-          onViewTransformation={(id) => navigateTo("transformation", undefined, id)}
-          onViewProfile={(proId) => navigateTo("pro-profile", proId)}
+          onBook={() => navigateTo("booking", pageState.proId)}
+        />
+      ) : pageState.page === "explore" ? (
+        <ExplorePage
+          onBack={navigateBack}
+          onViewTransformation={(id) => navigateTo("transformation", undefined, id, "explore")}
+          onViewProfile={(proId) => navigateTo("profile", proId)}
         />
       ) : pageState.page === "transformation" ? (
         <TransformationPage
           transformationId={pageState.transformationId!}
           onBack={navigateBack}
-          onViewProfile={(proId) => navigateTo("pro-profile", proId)}
-          onBook={(proId) => navigateTo("confirm", proId)}
+          onViewProfile={(proId) => navigateTo("profile", proId)}
+          onBook={(proId) => navigateTo("booking", proId)}
         />
-      ) : pageState.page === "confirm" ? (
+      ) : pageState.page === "booking" ? (
         <BookingConfirmation
           proId={pageState.proId!}
           onBack={navigateBack}
           onSendBookingRequest={() => {
             setHasActiveBooking(true);
-            navigateTo("success", pageState.proId);
+            navigateTo("bookingSuccess", pageState.proId);
           }}
         />
-      ) : pageState.page === "success" ? (
+      ) : pageState.page === "bookingSuccess" ? (
         <BookingSuccessPage
           proId={pageState.proId!}
           onViewDashboard={() => navigateTo("dashboard")}
         />
       ) : pageState.page === "dashboard" ? (
-        <Dashboard
+        <UserDashboard
           onNavigate={navigateTo}
         />
       ) : pageState.page === "pro-dashboard" ? (
@@ -206,7 +174,6 @@ function App() {
           onNavigate={navigateTo}
         />
       ) : null}
-      </BookingProvider>
     </ThemeProvider>
   );
 }
