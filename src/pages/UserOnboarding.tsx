@@ -49,19 +49,22 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
 
     const loadUserData = async () => {
       try {
-        const { data: profile } = await supabase
+        const { data: profiles, error } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('id', userId)
-          .single();
+          .eq('id', userId);
 
-        if (profile) {
+        if (error) throw error;
+
+        // Check if we have a profile and use it to populate the form
+        if (profiles && profiles.length > 0) {
+          const profile = profiles[0];
           setFormData({
             fullName: profile.full_name,
             email: profile.email,
             location: profile.location,
           });
-          setBlurFace(profile.blur_face);
+          setBlurFace(profile.blur_face ?? false);
           setFrontImageUrl(profile.front_photo_url);
           setSideImageUrl(profile.side_photo_url);
           setTopImageUrl(profile.top_photo_url);
@@ -69,11 +72,16 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
         }
       } catch (error) {
         console.error('Error loading user data:', error);
+        toast({
+          title: "Error Loading Profile",
+          description: "Unable to load your profile data. You can continue with creating a new profile.",
+          variant: "default"
+        });
       }
     };
 
     loadUserData();
-  }, [userId]);
+  }, [userId, toast]);
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -248,36 +256,36 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
-              id="name" 
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleFormChange}
-              placeholder="Enter your name"
-              required
-            />
+                id="name" 
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleFormChange}
+                placeholder="Enter your name"
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleFormChange}
-              type="email"
-              placeholder="Enter your email"
-              required
-            />
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleFormChange}
+                type="email"
+                placeholder="Enter your email"
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">City or ZIP Code</Label>
               <Input
-              id="location"
-              name="location"
-              value={formData.location}
-              onChange={handleFormChange}
-              placeholder="Enter your location"
-              required
-            />
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleFormChange}
+                placeholder="Enter your location"
+                required
+              />
             </div>
           </div>
 
