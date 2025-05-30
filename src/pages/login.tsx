@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 
-export default function Login() {
+export default function Login({ onBack }: LoginProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
       <motion.div
@@ -15,7 +15,7 @@ export default function Login() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => window.history.back()}
+          onClick={onBack}
           className="mb-6"
         >
           <ArrowLeft className="h-5 w-5" />

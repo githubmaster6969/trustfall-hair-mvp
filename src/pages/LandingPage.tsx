@@ -7,9 +7,10 @@ interface LandingPageProps {
   onGetStarted: () => void;
   onExplore: () => void;
   onProSignup: () => void;
+  onLogin: () => void;
 }
 
-const LandingPage = ({ onGetStarted, onExplore, onProSignup }: LandingPageProps) => {
+const LandingPage = ({ onGetStarted, onExplore, onProSignup, onLogin }: LandingPageProps) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-background to-secondary/20">
       <motion.div
@@ -75,12 +76,13 @@ const LandingPage = ({ onGetStarted, onExplore, onProSignup }: LandingPageProps)
         </div>
 
         <div className="mt-8">
-          <a 
-            href={routes.LOGIN}
+          <Button
+            variant="link"
+            onClick={onLogin}
             className="text-sm text-primary hover:underline transition-all"
           >
             Already have an account? Log In
-          </a>
+          </Button>
         </div>
       </motion.div>
     </div>

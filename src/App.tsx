@@ -21,6 +21,7 @@ import { useState } from "react";
 
 type Page = 
   | "landing" 
+  | "login"
   | "onboarding" 
   | "pro-signup"
   | "pro-social-links"
@@ -75,11 +76,14 @@ function App() {
       {hasActiveBooking && pageState.page === "landing" ? (
         <UserDashboard onNavigate={navigateTo} />
       ) : pageState.page === "landing" ? (
-        <LandingPage 
+        <LandingPage
           onGetStarted={() => navigateTo("onboarding")}
           onExplore={() => navigateTo("explore", undefined, undefined, "landing")}
           onProSignup={() => navigateTo("pro-signup")}
+          onLogin={() => navigateTo("login")}
         />
+      ) : pageState.page === "login" ? (
+        <Login onBack={navigateBack} />
       ) : pageState.page === "onboarding" ? (
         <UserOnboarding 
           onBack={navigateBack}
