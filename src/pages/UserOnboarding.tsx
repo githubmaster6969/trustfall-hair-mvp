@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 
 type ImageUpload = {
@@ -18,11 +20,23 @@ interface UserOnboardingProps {
 }
 
 const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    location: '',
+  });
   const [frontImage, setFrontImage] = useState<ImageUpload>(null);
   const [sideImage, setSideImage] = useState<ImageUpload>(null);
   const [topImage, setTopImage] = useState<ImageUpload>(null);
   const [backImage, setBackImage] = useState<ImageUpload>(null);
   const [blurFace, setBlurFace] = useState(false);
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -90,6 +104,65 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
     </div>
   );
 
+  const uploadImage = async (file: File, path: string) => {
+    const { data, error } = await supabase.storage
+      .from('user-photos')
+      .upload(path, file);
+
+    if (error) throw error;
+    return data.path;
+  };
+
+  const handleSubmit = async () => {
+    if (!frontImage || !sideImage || !formData.fullName || !formData.email || !formData.location) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields and upload required photos.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Upload images to Supabase Storage
+      const userId = crypto.randomUUID();
+      const uploads = await Promise.all([
+        uploadImage(frontImage.file, `${userId}/front.jpg`),
+        uploadImage(sideImage.file, `${userId}/side.jpg`),
+        topImage ? uploadImage(topImage.file, `${userId}/top.jpg`) : null,
+        backImage ? uploadImage(backImage.file, `${userId}/back.jpg`) : null,
+      ]);
+
+      // Create user profile in database
+      const { error } = await supabase.from('user_profiles').insert({
+        id: userId,
+        full_name: formData.fullName,
+        email: formData.email,
+        location: formData.location,
+        front_photo_url: uploads[0],
+        side_photo_url: uploads[1],
+        top_photo_url: uploads[2],
+        back_photo_url: uploads[3],
+        blur_face: blurFace,
+      });
+
+      if (error) throw error;
+
+      onContinue();
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your information. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-6">
       <motion.div
@@ -114,24 +187,37 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
           <div className="grid gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="Enter your name" required />
+              <Input
+              id="name" 
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleFormChange}
+              placeholder="Enter your name"
+              required
+            />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                required
-              />
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleFormChange}
+              type="email"
+              placeholder="Enter your email"
+              required
+            />
             </div>
             <div className="space-y-2">
               <Label htmlFor="location">City or ZIP Code</Label>
               <Input
-                id="location"
-                placeholder="Enter your location"
-                required
-              />
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleFormChange}
+              placeholder="Enter your location"
+              required
+            />
             </div>
           </div>
 
@@ -181,7 +267,20 @@ const UserOnboarding = ({ onBack, onContinue }: UserOnboardingProps) => {
           <Button variant="outline" className="w-full" onClick={onBack}>
             Go Back
           </Button>
-          <Button className="w-full" onClick={onContinue}>Continue</Button>
+          <Button 
+            className="w-full" 
+            onClick={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
+                Saving...
+              </div>
+            ) : (
+              "Continue"
+            )}
+          </Button>
         </div>
       </motion.div>
     </div>
