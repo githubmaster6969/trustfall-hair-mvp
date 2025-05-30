@@ -22,6 +22,7 @@ import ProServices from "@/pages/ProServices";
 import ProPreview from "@/pages/ProPreview";
 import ProDashboard from "@/pages/ProDashboard";
 import { useState } from "react";
+import { useEffect } from "react";
 
 type Page = 
   | "landing"
@@ -57,15 +58,26 @@ interface PageState {
 function App() {
   const [pageState, setPageState] = useState<PageState>({ page: "landing" });
   const [history, setHistory] = useState<PageState[]>([]);
-  const [hasActiveBooking, setHasActiveBooking] = useState(false);
+  const [hasActiveBooking, setHasActiveBooking] = useState(() => {
+    const stored = localStorage.getItem("hasActiveBooking");
+    return stored === "true";
+  });
 
   const navigateTo = (page: Page, proId?: string, transformationId?: string, source?: Page) => {
     // Save current state to history before navigating
     if (pageState.page !== page) {
       setHistory(prev => [...prev, pageState]);
     }
+    // Reset history when going to landing to prevent loops
+    if (page === "landing") {
+      setHistory([]);
+    }
     setPageState({ page, proId, transformationId, source });
   };
+
+  useEffect(() => {
+    localStorage.setItem("hasActiveBooking", hasActiveBooking.toString());
+  }, [hasActiveBooking]);
 
   const navigateBack = () => {
     const previousState = history[history.length - 1];
@@ -73,8 +85,10 @@ function App() {
       setPageState(previousState);
       setHistory(prev => prev.slice(0, -1));
     } else {
-      // Default fallback if no history exists
-      setPageState({ page: "landing" });
+      // Only go to landing if we're not already there
+      if (pageState.page !== "landing") {
+        setPageState({ page: "landing" });
+      }
     }
   };
 
@@ -145,7 +159,7 @@ function App() {
       ) : pageState.page === "pro-profile" ? (
         <ProProfile
           proId={pageState.proId!}
-          onBack={navigateBack}
+          onBack={() => navigateBack()}
           onBook={() => navigateTo("confirm", pageState.proId)}
         />
       ) : pageState.page === "user-profile" ? (
@@ -157,7 +171,7 @@ function App() {
       ) : pageState.page === "explore" ? (
         <Explore
           onBack={navigateBack}
-          onViewTransformation={(id) => navigateTo("transformation", undefined, id, "explore")}
+          onViewTransformation={(id) => navigateTo("transformation", undefined, id)}
           onViewProfile={(proId) => navigateTo("pro-profile", proId)}
         />
       ) : pageState.page === "transformation" ? (
