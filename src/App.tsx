@@ -1,12 +1,12 @@
 import { ThemeProvider } from "@/components/ThemeProvider";
 import LandingPage from "@/pages/LandingPage";
-import Upload from "@/pages/user/booking/Upload";
-import Preferences from "@/pages/user/booking/Preferences";
-import Scheduling from "@/pages/user/booking/Scheduling";
-import Matches from "@/pages/user/booking/Matches";
+import UserOnboarding from "@/pages/UserOnboarding";
+import HaircutPreferences from "@/pages/HaircutPreferences";
+import SchedulingPreferences from "@/pages/SchedulingPreferences";
+import RecommendedProfessionals from "@/pages/RecommendedProfessionals";
 import ProProfile from "@/pages/ProProfile";
-import Confirm from "@/pages/user/booking/Confirm";
-import Success from "@/pages/user/booking/Success";
+import BookingConfirmation from "@/pages/BookingConfirmation";
+import BookingSuccessPage from "@/pages/BookingSuccessPage";
 import Dashboard from "@/pages/user/Dashboard";
 import Explore from "@/pages/user/Explore";
 import Profile from "@/pages/user/Profile";
@@ -105,7 +105,7 @@ function App() {
       ) : pageState.page === "login" ? (
         <Login />
       ) : pageState.page === "upload" ? (
-        <Upload
+        <UserOnboarding
           onBack={navigateBack}
           onContinue={() => navigateTo("preferences")}
         />
@@ -140,17 +140,17 @@ function App() {
           onContinue={() => navigateTo("pro-dashboard")}
         />
       ) : pageState.page === "preferences" ? (
-        <Preferences
+        <HaircutPreferences
           onBack={navigateBack}
           onContinue={() => navigateTo("scheduling")}
         />
       ) : pageState.page === "scheduling" ? (
-        <Scheduling
+        <SchedulingPreferences
           onBack={navigateBack}
           onContinue={() => navigateTo("matches")}
         />
       ) : pageState.page === "matches" ? (
-        <Matches
+        <RecommendedProfessionals
           onBack={navigateBack}
           onViewProfile={(proId) => navigateTo("pro-profile", proId)}
           onBook={(proId) => navigateTo("confirm", proId)}
@@ -182,7 +182,7 @@ function App() {
           onBook={(proId) => navigateTo("confirm", proId)}
         />
       ) : pageState.page === "confirm" ? (
-        <Confirm
+        <BookingConfirmation
           proId={pageState.proId!}
           onBack={navigateBack}
           onSendBookingRequest={() => {
@@ -191,7 +191,7 @@ function App() {
           }}
         />
       ) : pageState.page === "success" ? (
-        <Success
+        <BookingSuccessPage
           proId={pageState.proId!}
           onViewDashboard={() => navigateTo("dashboard")}
         />
